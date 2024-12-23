@@ -1,94 +1,71 @@
 from flask import Flask, request, jsonify
 from flask_cors import CORS, cross_origin
 import math
-import cv2
 import numpy as np
-import os
+import rasterio
+import rasterio.transform
+from global_land_mask import globe
+from haversine import haversine
 
 app = Flask(__name__)
 CORS(app)
 
-# Anchorage
-known_location_a = {
-  "pixelPositionX": 3592,
-  "pixelPositionY": 2866,
-  "latitude": 61.156913,
-  "longitude": -150.074236
-}
+def map_location_to_pixel(lat, lon):
+  dat = rasterio.open(r"./map.tif")
+  z = dat.read()[0]
+  
+  idx = dat.index(lon, lat, precision=1E-6)
+  return z[idx]
+    
+def classify_sqm(rgb): # sqm = sky quality meter, in mag/arcsec^2
+  bortle_scale = {
+    "1": [0, 1, 2, 3] + list(range(15, 256)),
+    "2": [4, 5],
+    "3": [6],
+    "4": [7],
+    "5": [8, 9],
+    "6": [10, 11],
+    "7": [12],
+    "8-9": [13, 14],
+  }
+  
+  for bortle_class, colors in bortle_scale.items():
+    for color in colors:
+      if np.all(rgb == color):
+        return bortle_class
 
-# Wellington
-# -54.801944, -68.303056
-known_location_b = {
-  "pixelPositionX": 42576,
-  "pixelPositionY": 15166,
-  "latitude": -41.342718,
-  "longitude": 174.821199
-}
-
-def remap(sourceFrom: float, sourceTo: float, targetFrom: float, targetTo: float, value: float):
-  return targetFrom + (value - sourceFrom) * (targetTo - targetFrom) / (sourceTo - sourceFrom)
-
-def convert_x(longitude: float):
-  return remap(known_location_a["longitude"], known_location_b["longitude"], known_location_a["pixelPositionX"], known_location_b["pixelPositionX"], longitude)
-
-def convert_y(latitude: float):
-  return remap(known_location_a["latitude"], known_location_b["latitude"], known_location_a["pixelPositionY"], known_location_b["pixelPositionY"], latitude)
-
-def convert_pixel_to_coords(pixel_x: float, pixel_y: float):
-  longitude = remap(known_location_a["pixelPositionX"], known_location_b["pixelPositionX"],
-          known_location_a["longitude"], known_location_b["longitude"], pixel_x)
-  latitude = remap(known_location_a["pixelPositionY"], known_location_b["pixelPositionY"],
-          known_location_a["latitude"], known_location_b["latitude"], pixel_y)
-  return latitude, longitude
-
-# Load the image using OpenCV
-image = cv2.imread("./World_Atlas_2015.png", cv2.IMREAD_GRAYSCALE)
-
-# Formula from http://unihedron.com/projects/darksky/magconv.php and http://unihedron.com/projects/darksky/mpsastocdm2.pdf
-def total_brightness_to_mag_arcsec2(total_brightness: float):
-  return -2.5 * math.log10((total_brightness / 1000) / 108000)
-
-# https://en.wikipedia.org/wiki/Bortle_scale
-def sky_magnitude_to_bortle_class(sky_magnitude: float):
-  values = [21.99, 21.89, 21.69, 20.49, 19.50, 18.94, 18.38]
-  for i in range(len(values)):
-    if sky_magnitude > values[i]:
-      return i + 1
-  return 9
-
-def get_bortle_class_at_pixel(pixel_x: int, pixel_y: int, size: int = 1) -> int:
-  if (pixel_x < 0 or pixel_x >= image.shape[1] or 
-    pixel_y < 0 or pixel_y >= image.shape[0]):
-    return 9  # Return worst Bortle class for out of bounds
-
-  x_start = max(0, pixel_x - size)
-  y_start = max(0, pixel_y - size)
-  x_end = min(image.shape[1], pixel_x + size + 1)
-  y_end = min(image.shape[0], pixel_y + size + 1)
-
-  area = image[y_start:y_end, x_start:x_end]
-  total_brightness = np.mean(area)
-  sky_magnitude = total_brightness_to_mag_arcsec2(float(total_brightness))
-  return sky_magnitude_to_bortle_class(sky_magnitude)
-
-def find_nearest_dark_location(start_x: int, start_y: int, max_radius: int = 1000) -> tuple:
-  """
-  Searches in expanding circles for the nearest pixel with Bortle class 3 or lower.
-  Returns (x, y, distance, bortle_class) or None if not found within max_radius.
-  """
-  for radius in range(max_radius):
-    # Check points in a circle at current radius
-    for angle in range(360):
-      rad = math.radians(angle)
-      x = int(start_x + radius * math.cos(rad))
-      y = int(start_y + radius * math.sin(rad))
-      
-      bortle_class = get_bortle_class_at_pixel(x, y)
-      if bortle_class <= 5:
-        distance = math.sqrt((x - start_x)**2 + (y - start_y)**2)
-        return (x, y, distance, bortle_class)
   return None
 
+def find_nearest_dark_location(lat, lon):
+  with rasterio.open(r"./map.tif") as dat:
+    z = dat.read()[0]
+    height, width = z.shape
+    
+    center_idx = dat.index(lon, lat, precision=1E-6)
+    center_r, center_c = center_idx
+    max_distance = max(height, width)
+    
+    for radius in range(1, max_distance):
+      # sweep around the center px at radius r
+      for angle in range(0, 360, 5):
+        angle_rad = math.radians(angle)
+        d_row = int(radius * math.sin(angle_rad))
+        d_col = int(radius * math.cos(angle_rad))
+        cur_row = center_r + d_row
+        cur_col = center_c + d_col
+        
+        
+        if 0 <= cur_row < height and 0 <= cur_col < width:
+          nearest_lon, nearest_lat = dat.xy(cur_row, cur_col)
+          if not globe.is_land(nearest_lat, nearest_lon):
+            continue
+          rgb = np.array([z[cur_row, cur_col]])
+          bortle = classify_sqm(rgb)
+          if bortle is not None and int(bortle.split("-")[0]) <= 4:
+            nearest_lon, nearest_lat = dat.xy(cur_row, cur_col)
+            return nearest_lat, nearest_lon, radius, bortle
+    
+    return None
 
 @app.route("/")
 @cross_origin()
@@ -99,27 +76,15 @@ def index():
   longitude = request.args.get("lon", type=float)
   if longitude is None:
     return jsonify({"error": "Longitude missing or it is not a number"})
-
-  pixel_x = math.floor(convert_x(longitude))
-  pixel_y = math.floor(convert_y(latitude))
-
-  # Extract a small area of the image
-  size = 1
-  x_start = max(0, pixel_x - size)
-  y_start = max(0, pixel_y - size)
-  x_end = min(image.shape[1], pixel_x + size + 1)
-  y_end = min(image.shape[0], pixel_y + size + 1)
-
-  area = image[y_start:y_end, x_start:x_end]
-  total_brightness = np.mean(area)  # Average brightness of the area
-
-  sky_magnitude = total_brightness_to_mag_arcsec2(float(total_brightness))
-  bortle_class = sky_magnitude_to_bortle_class(sky_magnitude)
-
+  
+  pixel = map_location_to_pixel(latitude, longitude)
+  result = classify_sqm(pixel)
+  
+  if result is None:
+    return jsonify({"error": "Location not found"})
+  
   return jsonify({
-    "totalBrightness": float(total_brightness),
-    "skyMagnitude": sky_magnitude,
-    "bortleClass": bortle_class
+    "bortle": result
   })
 
 @app.route("/nearest")
@@ -131,39 +96,33 @@ def nearest():
   longitude = request.args.get("lon", type=float)
   if longitude is None:
     return jsonify({"error": "Longitude missing or it is not a number"})
+  unit = request.args.get("unit", type=str, default="km")
 
-  pixel_x = math.floor(convert_x(longitude))
-  pixel_y = math.floor(convert_y(latitude))
-
-  result = find_nearest_dark_location(pixel_x, pixel_y)
-  
-  if result is None:
+  try:
+    cur_bortle = classify_sqm(map_location_to_pixel(latitude, longitude))
+    result = find_nearest_dark_location(latitude, longitude)
+    if result is None:
+      return jsonify({
+        "error": "No dark sky location found within search radius"
+      })
+      
+    nearest_lat, nearest_lon, radius, bortle = result
+    
     return jsonify({
-      "error": "No dark sky location found within search radius"
+      "latitude": nearest_lat,
+      "longitude": nearest_lon,
+      "distance": haversine((latitude, longitude), (nearest_lat, nearest_lon), unit=unit),
+      "bortle": bortle,
+      "input": {
+        "latitude": latitude,
+        "longitude": longitude,
+        "bortle": cur_bortle,
+      }
     })
-
-  found_x, found_y, distance_pixels, bortle_class = result
-  found_lat, found_lon = convert_pixel_to_coords(found_x, found_y)
-
-  pixel_distance_per_km = (
-    math.sqrt(
-      (known_location_b["pixelPositionX"] - known_location_a["pixelPositionX"])**2 +
-      (known_location_b["pixelPositionY"] - known_location_a["pixelPositionY"])**2
-    ) /
-    6371 
-  )
-  distance_km = distance_pixels / pixel_distance_per_km
-
-  return jsonify({
-    "latitude": found_lat,
-    "longitude": found_lon,
-    "distanceKm": round(distance_km, 2),
-    "bortleClass": bortle_class
-  })
-
+  except Exception as e:
+    return jsonify({
+      "error": str(e)
+    })
+    
 if __name__ == "__main__":
-  app.run()
-
-  if __name__ == "__main__":
-
-    app.run(host='0.0.0.0', port=5000)
+  app.run(debug=True)

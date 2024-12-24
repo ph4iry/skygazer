@@ -25,7 +25,13 @@
  *what does any of that mean?* maps are always gonna be distorted to some degree because its a 2D representation of our 3D spheroid earth. the projection that most maps use today is the[ *mercator projection*](https://en.wikipedia.org/wiki/Mercator_projection), but online map services like google and bing maps tend to use the [*web mercator projection*](https://en.wikipedia.org/wiki/Web_Mercator_projection). according to wikipedia:
  > *the web mercator uses the spherical formulas at all scales whereas large-scale mercator maps normally use the ellipsoidal form of the projection.*
  
- if you're curious about the formulas, our applicable formula is represented as $$ x = \left\lfloor \frac{1}{2\pi} \cdot 2^{\text{zoom level}}(\pi+\lambda) \right\rfloor \text{pixels,}$$ $$ y = \left\lfloor \frac{1}{2\pi} \cdot 2^{\text{zoom level}}(\pi-\ln\left[ \tan(\frac{\pi}{4}+\frac{\varphi}{2}) \right])) \right\rfloor \text{pixels} $$ where $ \lambda $ is the longitude in radians and $ \varphi $ is geodetic latitude[^1] in radians.
+ if you're curious about the formulas, our applicable formula is represented as
+ 
+ $$ x = \left\lfloor \frac{1}{2\pi} \cdot 2^{\text{zoom level}}(\pi+\lambda) \right\rfloor \text{pixels,}$$
+ 
+ $$ y = \left\lfloor \frac{1}{2\pi} \cdot 2^{\text{zoom level}}(\pi-\ln\left[ \tan(\frac{\pi}{4}+\frac{\varphi}{2}) \right])) \right\rfloor \text{pixels} $$
+ 
+ where $\lambda$ is the longitude in radians and $\varphi$ is geodetic latitude[^1] in radians.
 
  [^1]: **geodetic latitude**: the angle between the equatorial plane and the line that is perpendicular to the surface of an ellipsoid at a given point
 

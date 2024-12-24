@@ -4,3 +4,4 @@ global_land_mask==1.0.0
 haversine==2.9.0
 numpy==2.2.1
 rasterio==1.4.3
+gunicorn==23.0.0

@@ -18,14 +18,19 @@
 
  after scouring the internet, we've found some data to work with! now comes the biggest challenge: figuring out how to read it. i've definitely learned a lot about map projections and geographic data representation through this project, but it took quite a few attempts to finally get it right.
 
- ### attempt 1: use a projection formula[^1] to read pixels from the image
- [^1]: [map projection](https://en.wikipedia.org/wiki/Map_projection) is any set of transformations to represent the curved surface of a globe onto a plane. if you're curious about the formulas, the web mercator projection (our applicable projection here) has a formula of $$ x = \left\lfloor \frac{1}{2\pi} \cdot 2^{\text{zoom level}}(\pi+\lambda) \right\rfloor $$ pixels and $$ y = \left\lfloor \frac{1}{2\pi} \cdot 2^{\text{zoom level}}(\pi-\ln\left[ \tan(\frac{\pi}{4}+\frac{\varphi}{2}) \right])) \right\rfloor $$ pixels, where $ \lambda $ is the longitude in radians and $ \varphi $ is geodetic latitude in radians.
-
-
- this was the plan from the beginning, given that the only "APIs" also used this method.
-
+ ### attempt 1: use a projection formula to read pixels from the image
+ 
+ [map projection](https://en.wikipedia.org/wiki/Map_projection) is any set of transformations to represent the curved surface of a globe onto a plane.
+ 
  *what does any of that mean?* maps are always gonna be distorted to some degree because its a 2D representation of our 3D spheroid earth. the projection that most maps use today is the[ *mercator projection*](https://en.wikipedia.org/wiki/Mercator_projection), but online map services like google and bing maps tend to use the [*web mercator projection*](https://en.wikipedia.org/wiki/Web_Mercator_projection). according to wikipedia:
  > *the web mercator uses the spherical formulas at all scales whereas large-scale mercator maps normally use the ellipsoidal form of the projection.*
+ 
+ if you're curious about the formulas, our applicable formula is represented as $$ x = \left\lfloor \frac{1}{2\pi} \cdot 2^{\text{zoom level}}(\pi+\lambda) \right\rfloor \text{pixels,}$$ $$ y = \left\lfloor \frac{1}{2\pi} \cdot 2^{\text{zoom level}}(\pi-\ln\left[ \tan(\frac{\pi}{4}+\frac{\varphi}{2}) \right])) \right\rfloor \text{pixels} $$ where $ \lambda $ is the longitude in radians and $ \varphi $ is geodetic latitude[^1] in radians.
+
+ [^1]: **geodetic latitude**: the angle between the equatorial plane and the line that is perpendicular to the surface of an ellipsoid at a given point
+
+ this was the plan from the beginning, given that the only open-source APIs with source code available also used this method.
+
 
  problem with this attempt: the formula was yielding some odd results. some of the variables in the formula i didn't know how to find, so after hours of fumbling in desmos for a formula that could've been "close enough" and mindlessly googling "web mercator projection formula", i pivoted to a new method in hopes it could work better.
 
@@ -43,7 +48,7 @@
  with more research, i found my main task: somehow convert the original png above to a georeferenced image, and use some sort of software in python to fetch the rgb values of a pixel. we're getting somewhere!
 
  ### attempt 3: reproject the image as a geotiff file using geographical information system (gis) software
- on David Lorenz's website, he lists the latitudinal and longitudinal bounds of all of his recalculated maps. in order to georeference the png and convert it to a geotiff, i found [QGIS](https://www.qgis.org/)–an open source software that was literally *just* what i needed.
+ on David Lorenz's recalculated map page, he lists the latitudinal and longitudinal bounds of all of his recalculated maps. in order to georeference the png and convert it to a geotiff, i found [QGIS](https://www.qgis.org/)–an open source software that was literally *just* what i needed.
 
  *after weeks of battling with kmls, kmzs, geojsons, and geotiffs, the light pollution api whirred to life successfully!*
 

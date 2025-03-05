@@ -29,7 +29,7 @@
  
  $$ x = \left\lfloor \frac{1}{2\pi} \cdot 2^{\text{zoom level}}(\pi+\lambda) \right\rfloor \text{pixels,}$$
  
- $$ y = \left\lfloor \frac{1}{2\pi} \cdot 2^{\text{zoom level}}(\pi-\ln\left[ \tan(\frac{\pi}{4}+\frac{\varphi}{2}) \right])) \right\rfloor \text{pixels} $$
+ $$ y = \left\lfloor \frac{1}{2\pi} \cdot 2^{\text{zoom level}}(\pi-\ln\left[ \tan(\frac{\pi}{4}+\frac{\varphi}{2}) \right]) \right\rfloor \text{pixels} $$
  
  where $\lambda$ is the longitude in radians and $\varphi$ is geodetic latitude[^1] in radians.
 

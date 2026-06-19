@@ -12,9 +12,9 @@
 
  the process of building this was pretty ridiculous, so i advise you to grab a snack before diving in.
 
- the map data being used for skygazer is from [David Lorenz's 2022 recalculated World Atlas of Artificial Night Sky Brightness](https://djlorenz.github.io/astronomy/lp2022/). here's what it ends up looking like:
+ the map data being used for skygazer is from [David Lorenz's 2022 recalculated World Atlas of Artificial Night Sky Brightness](https://djlorenz.github.io/astronomy/lp2022/). here's what it ends up looking like _(updated June 2026 with a map from 2024)_:
 
- ![2022 Map](https://djlorenz.github.io/astronomy/lp2022/world2022_low3.png)
+ ![2024 Map](https://djlorenz.github.io/astronomy/lp2024/world2024B_low3.png)
 
  after scouring the internet, we've found some data to work with! now comes the biggest challenge: figuring out how to read it. i've definitely learned a lot about map projections and geographic data representation through this project, but it took quite a few attempts to finally get it right.
 
@@ -71,9 +71,11 @@
  1. create a circle of radius `n` around the location given
  2. sweep around the center point in 5º increments along the circle
  3. if at any point the pixel being read has a Bortle scale[^4] value of 4 or less, stop
-
  this is DEFINITELY not the most optimized solution, but it gets the job done and finds a location with a "good-enough" bortle scale.
 
  [^4]: the [bortle scale](https://en.wikipedia.org/wiki/Bortle_scale) (also explained on the skygazer site) is a nine-level numeric scale that measures the night sky's brightness of a particular location.
 
  the implementation of this looks very complicated, but this is the core of the API. feel free to check out the source code and how it works!
+
+# preview
+ ![Preview image](/assets/preview.png)

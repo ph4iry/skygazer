@@ -1,59 +1,16 @@
-import { LightPollutionData } from "@/types";
+import { LightPollutionData, Spot } from "@/types";
+import { bortleToColor, getBortleClassification } from "@/utils/bortle";
 import { IoLocationSharp } from "react-icons/io5";
 import { motion, Variants } from "motion/react";
 
 interface LightPollutionInfoProps {
   data: LightPollutionData;
+  // the option the user picked; the card describes it instead of the recommended spot
+  spot: Spot;
 }
 
-export default function LightPollutionInfo({ data }: LightPollutionInfoProps) {
-  const getBortleClassification = (input: string | number) => {
-    switch (`${input}`) {
-      case '1':
-        return "Excellent dark-sky site";
-      case '2':
-        return "Typical truly dark site";
-      case '3':
-        return "Rural sky";
-      case '4':
-        return "Rural/suburban transition";
-      case '5':
-        return "Suburban sky";
-      case '6':
-        return "Bright suburban sky";
-      case '7':
-        return "City sky";
-      case '8-9':
-        return "Inner-city sky";
-      default:
-        return "Unknown";
-    }
-  }
-
-  const bortleToColor = (bortle: string | number) => {
-    switch (`${bortle}`) {
-      case '1':
-        return "text-green-300";
-      case '2':
-        return "text-green-200";
-      case '3':
-        return "text-green-100";
-      case '4':
-        return "text-yellow-300";
-      case '5':
-        return "text-yellow-200";
-      case '6':
-        return "text-yellow-100";
-      case '7':
-        return "text-red-300";
-      case '8-9':
-        return "text-red-200";
-      default:
-        return "text-gray-300";
-    }
-  }
-
-  const idealBortleDescription = getBortleClassification(data.bortle);
+export default function LightPollutionInfo({ data, spot }: LightPollutionInfoProps) {
+  const idealBortleDescription = getBortleClassification(spot.bortle);
   const inputBortleDescription = getBortleClassification(data.input.bortle);
 
   const informationVariants: Variants = {
@@ -89,17 +46,24 @@ export default function LightPollutionInfo({ data }: LightPollutionInfoProps) {
 
       <motion.div variants={innerInformationVariantsB} initial="hidden" animate="visible" exit="hidden">
         <motion.p variants={infoItemVariants} className="mt-4">
-          The ideal location for stargazing near you is at
+          The ideal location for stargazing near you is
+          {spot.place?.name ? (
+            <>
+              {" "}<span className="font-bold text-indigo-200">{spot.place.name}</span>
+              {spot.place.label && <> in {spot.place.label}</>}, at
+            </>
+          ) : " at"}
           <span className="inline-block ml-2">
             <IoLocationSharp className="inline size-5 text-red-300 mr-1" />
-            <a target="_blank" rel="noreferrer noopener" href={`https://www.google.com/maps/place/${data.latitude},${data.longitude}`} className="font-bold underline underline-offset-4 transition hover:text-indigo-300">
-              {data.latitude.toFixed(4)}, {data.longitude.toFixed(4)}
+            <a target="_blank" rel="noreferrer noopener" href={`https://www.google.com/maps/place/${spot.latitude},${spot.longitude}`} className="font-bold underline underline-offset-4 transition hover:text-indigo-300">
+              {spot.latitude.toFixed(4)}, {spot.longitude.toFixed(4)}
             </a>
           </span>
+          {spot.place && !spot.place.name && <> {spot.place.label}</>}
           . This location is rated as{" "}
         </motion.p>
-        <motion.div variants={infoItemVariants} className={`text-base lg:text-xl font-serif italic lowercase ${bortleToColor(data.bortle)}`}>
-          {data.bortle}: {idealBortleDescription}
+        <motion.div variants={infoItemVariants} className={`text-base lg:text-xl font-serif italic lowercase ${bortleToColor(spot.bortle)}`}>
+          {spot.bortle}: {idealBortleDescription}
         </motion.div>
         <motion.p variants={infoItemVariants}>on the Bortle scale.</motion.p>
       </motion.div>

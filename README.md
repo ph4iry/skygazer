@@ -22,7 +22,7 @@
  
  [Map projection](https://en.wikipedia.org/wiki/Map_projection) is any set of transformations to represent the curved surface of a globe onto a plane.
  
- *What does any of that mean?* Maps are always gonna be distorted to some degree because its a 2D representation of our 3D spheroid Earth. The projection that most maps use today is the[ *Mercator projection*](https://en.wikipedia.org/wiki/Mercator_projection), but online map services like Google and Bing Maps tend to use the [*Web Mercator projection*](https://en.wikipedia.org/wiki/Web_Mercator_projection). According to Wikipedia:
+ *What does any of that mean?* Maps are always gonna be distorted to some degree because it's a 2D representation of our 3D spheroid Earth. The projection that most maps use today is the[ *Mercator projection*](https://en.wikipedia.org/wiki/Mercator_projection), but online map services like Google and Bing Maps tend to use the [*Web Mercator projection*](https://en.wikipedia.org/wiki/Web_Mercator_projection). According to Wikipedia:
  > *The Web Mercator uses the spherical formulas at all scales whereas large-scale Mercator maps normally use the ellipsoidal form of the projection.*
  
  If you're curious about the formulas, our applicable formula is represented as
@@ -43,7 +43,7 @@
  ### Attempt 2: Use the raw data from the New World Atlas of Night Sky Brightness[^2]
  [^2]: *Falchi, Fabio; Cinzano, Pierantonio; Duriscoe, Dan; Kyba, Christopher C. M.; Elvidge, Christopher D.; Baugh, Kimberly; Portnov, Boris; Rybnikova, Nataliya A.; Furgoni, Riccardo (2016): Supplement to: The New World Atlas of Artificial Night Sky Brightness. V. 1.1. GFZ Data Services. https://doi.org/10.5880/GFZ.1.4.2016.001*
 
- This method ended up being the most resource consuming. The file format of the original data is a `.kmz` file, which is essentially a glorified `.zip` file with a folder of tilable `.png`s and a text-based `.kml` file that is essentially an XML file with references to the tiled images. Lot's of file formats to work with here!
+ This method ended up being the most resource consuming. The file format of the original data is a `.kmz` file, which is essentially a glorified `.zip` file with a folder of tilable `.png`s and a text-based `.kml` file that is essentially an XML file with references to the tiled images. Lots of file formats to work with here!
 
  The main problem with using this file format is that the tiled images weren't polygons that could be read through the `.kml` file alone; in order to read the data, I'd have to tile all of the images on a globe, such as Google Earth (one of the few services that even supports `.kmz` files), and then re-export it as a GeoTIFF (`.tif`) file.
 

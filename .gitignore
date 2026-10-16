@@ -1,0 +1,5 @@
+.DS_Store
+__pycache__/
+server/.venv/
+# raw source raster; rebuild data/bortle.tif from it with server/scripts/build_raster.py
+server/map.tif

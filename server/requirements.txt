@@ -1,7 +1,9 @@
 Flask==3.1.0
 Flask_Cors==5.0.0
-global_land_mask==1.0.0
 haversine==2.9.0
 numpy==2.2.1
 rasterio==1.4.3
 gunicorn==23.0.0
+requests==2.34.2
+Flask-Limiter==4.1.1
+cachetools==7.2.2

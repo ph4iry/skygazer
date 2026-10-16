@@ -1,56 +1,143 @@
-import { useRef, useEffect } from 'react';
-import { useMapsLibrary } from '@vis.gl/react-google-maps';
+import { useState, useRef, useEffect } from 'react';
+import { IoLocationSharp } from 'react-icons/io5';
+import { Suggestion } from '@/types';
+
+const MIN_QUERY_LENGTH = 3;
+const DEBOUNCE_MS = 350;
 
 interface SearchBarProps {
-  onPlaceSelect: (place: google.maps.places.PlaceResult) => void;
+  onPlaceSelect: (place: Suggestion) => void;
   onReset: () => void;
   showMap: boolean;
-  selectedPlace: google.maps.places.PlaceResult | null;
+  selectedPlace: Suggestion | null;
 }
 
 export default function SearchBar({ onPlaceSelect, onReset, showMap, selectedPlace }: SearchBarProps) {
-  
-  const placesLib = useMapsLibrary('places');
-  
-  const autoCompleteRef = useRef<google.maps.places.Autocomplete | null>(null);
+  const [query, setQuery] = useState('');
+  const [suggestions, setSuggestions] = useState<Suggestion[]>([]);
+  const [open, setOpen] = useState(false);
+  const [activeIndex, setActiveIndex] = useState(-1);
+
+  // only query while the user is typing; picking a suggestion pauses lookups until they type again
+  const typingRef = useRef(false);
 
   useEffect(() => {
-    if (!placesLib) return;
+    if (!selectedPlace) {
+      setQuery('');
+      setSuggestions([]);
+    }
+  }, [selectedPlace]);
 
-    const input = document.getElementById('address-input') as HTMLInputElement;
-    if (!input) return;
+  useEffect(() => {
+    const q = query.trim();
+    if (!typingRef.current || q.length < MIN_QUERY_LENGTH) {
+      setSuggestions([]);
+      return;
+    }
 
-    const options = {
-      componentRestrictions: { country: "us" },
-      fields: ["address_components", "geometry", "name", "formatted_address"],
-    };
-
-    autoCompleteRef.current = new placesLib.Autocomplete(input, options);
-    const listener = autoCompleteRef.current.addListener("place_changed", () => {
-      const place = autoCompleteRef.current?.getPlace();
-      if (place && place.geometry) {
-        onPlaceSelect(place);
+    const controller = new AbortController();
+    const timer = setTimeout(async () => {
+      try {
+        const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/autocomplete?q=${encodeURIComponent(q)}`, { signal: controller.signal });
+        const data: Suggestion[] = response.ok ? await response.json() : [];
+        setSuggestions(data);
+        setActiveIndex(-1);
+        setOpen(true);
+      } catch (error) {
+        if ((error as Error).name !== 'AbortError') {
+          setSuggestions([]);
+        }
       }
-    });
+    }, DEBOUNCE_MS);
 
     return () => {
-      if (listener) {
-        listener.remove();
-      }
-      if (autoCompleteRef.current) {
-        autoCompleteRef.current = null;
-      }
+      clearTimeout(timer);
+      controller.abort();
     };
-  }, [placesLib, onPlaceSelect]);
+  }, [query]);
+
+  const selectSuggestion = (suggestion: Suggestion) => {
+    typingRef.current = false;
+    setQuery(suggestion.label);
+    setSuggestions([]);
+    setOpen(false);
+    onPlaceSelect(suggestion);
+  };
+
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (!open || suggestions.length === 0) return;
+
+    if (e.key === 'ArrowDown') {
+      e.preventDefault();
+      setActiveIndex((i) => (i + 1) % suggestions.length);
+    } else if (e.key === 'ArrowUp') {
+      e.preventDefault();
+      setActiveIndex((i) => (i <= 0 ? suggestions.length - 1 : i - 1));
+    } else if (e.key === 'Enter') {
+      e.preventDefault();
+      selectSuggestion(suggestions[Math.max(activeIndex, 0)]);
+    } else if (e.key === 'Escape') {
+      setOpen(false);
+    }
+  };
+
+  const showSuggestions = open && suggestions.length > 0;
 
   return (
     <div className="relative">
       <input
         id="address-input"
         type="text"
+        role="combobox"
+        aria-autocomplete="list"
+        aria-expanded={showSuggestions}
+        aria-controls="address-suggestions"
+        aria-activedescendant={activeIndex >= 0 ? `address-suggestion-${activeIndex}` : undefined}
+        autoComplete="off"
         placeholder="Enter your address..."
+        value={query}
+        onChange={(e) => {
+          typingRef.current = true;
+          setQuery(e.target.value);
+        }}
+        onKeyDown={handleKeyDown}
+        onFocus={() => setOpen(true)}
+        onBlur={() => setOpen(false)}
         className="w-full px-6 py-3 bg-white/10 backdrop-blur-sm border border-white/20 rounded-full text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
       />
+      {showSuggestions && (
+        <ul
+          id="address-suggestions"
+          role="listbox"
+          className="absolute z-[1000] top-full left-4 right-4 mt-1 bg-white rounded-md shadow-lg overflow-hidden text-left"
+        >
+          {suggestions.map((suggestion, i) => {
+            const [main, ...rest] = suggestion.label.split(', ');
+            return (
+              <li
+                key={`${suggestion.label}-${i}`}
+                id={`address-suggestion-${i}`}
+                role="option"
+                aria-selected={i === activeIndex}
+                // keep focus in the input so the blur handler doesn't close the list first
+                onMouseDown={(e) => e.preventDefault()}
+                onClick={() => selectSuggestion(suggestion)}
+                onMouseEnter={() => setActiveIndex(i)}
+                className={`flex items-center gap-2 px-3 py-2 text-sm cursor-pointer border-t border-gray-200 first:border-t-0 ${i === activeIndex ? 'bg-gray-100' : ''}`}
+              >
+                <IoLocationSharp className="shrink-0 size-4 text-gray-400" />
+                <span className="truncate">
+                  <span className="text-gray-900">{main}</span>
+                  {rest.length > 0 && <span className="ml-1 text-gray-500">{rest.join(', ')}</span>}
+                </span>
+              </li>
+            );
+          })}
+          <li role="presentation" className="px-3 py-1 text-[11px] text-right text-gray-400 border-t border-gray-200">
+            search by Photon · © OpenStreetMap contributors
+          </li>
+        </ul>
+      )}
       <div className="absolute right-2 top-1/2 -translate-y-1/2 flex gap-2">
         {showMap && (
           <button

@@ -9,15 +9,16 @@
     "lint": "next lint"
   },
   "dependencies": {
-    "@vis.gl/react-google-maps": "^1.4.2",
+    "leaflet": "^1.9.4",
     "motion": "^11.15.0",
     "next": "^15.0.3",
     "react": "19.0.0-rc-66855b96-20241106",
     "react-dom": "19.0.0-rc-66855b96-20241106",
-    "react-icons": "^5.4.0"
+    "react-icons": "^5.4.0",
+    "react-leaflet": "^5.0.0"
   },
   "devDependencies": {
-    "@types/googlemaps": "^3.43.3",
+    "@types/leaflet": "^1.9",
     "@types/node": "^20",
     "@types/react": "^18",
     "@types/react-dom": "^18",

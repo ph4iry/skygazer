@@ -14,7 +14,7 @@
 
  The map data being used for skygazer is from [David Lorenz's 2022 recalculated World Atlas of Artificial Night Sky Brightness](https://djlorenz.github.io/astronomy/lp2022/). Here's what it ends up looking like:
 
- ![2022 Map](https://djlorenz.github.io/astronomy/lp2022/world2022_low3.png)
+ ![2024 Map](https://djlorenz.github.io/astronomy/lp2024/world2024B_low3.png)
 
  After scouring the internet, we've found some data to work with! Now comes the biggest challenge: figuring out how to read it. I've definitely learned a lot about map projections and geographic data representation through this project, but it took quite a few attempts to finally get it right.
 
@@ -29,7 +29,7 @@
  
  $$ x = \left\lfloor \frac{1}{2\pi} \cdot 2^{\text{zoom level}}(\pi+\lambda) \right\rfloor \text{pixels,}$$
  
- $$ y = \left\lfloor \frac{1}{2\pi} \cdot 2^{\text{zoom level}}(\pi-\ln\left[ \tan(\frac{\pi}{4}+\frac{\varphi}{2}) \right])) \right\rfloor \text{pixels} $$
+ $$ y = \left\lfloor \frac{1}{2\pi} \cdot 2^{\text{zoom level}}(\pi-\ln\left[ \tan(\frac{\pi}{4}+\frac{\varphi}{2}) \right]) \right\rfloor \text{pixels} $$
  
  where $\lambda$ is the longitude in radians and $\varphi$ is geodetic latitude[^1] in radians.
 

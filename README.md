@@ -67,19 +67,37 @@ But what about finding the nearest stargazing location?
 
 The *first version* of the algorithm was pretty simple: draw a circle of radius `n` pixels around the location, sweep around it in 5º steps, and stop at the first pixel with a Bortle scale[^4] value of 4 or less.
 
-It worked, but it took **several seconds per search**, it skipped pixels on big search radii, and it **needed the whole 725 MB map loaded into memory**.
+It worked, but it took **several seconds per search**, it skipped pixels on big search radii, and it **needed the whole 725 MB map loaded into memory**. Yikers!
 
 [^4]: The [Bortle scale](https://en.wikipedia.org/wiki/Bortle_scale) (also explained on the skygazer site) is a nine-level numeric scale that measures the night sky's brightness of a particular location.
 
-Now it works in two parts:
+### October 2026 update: making it fast (and small)
 
-**Preprocessing (done once).** [`server/scripts/build_raster.py`](server/scripts/build_raster.py) turns the raw map into a raster where each pixel already holds its Bortle class, with ocean pixels set to 0. Light pollution comes in big uniform patches, so a tiled, compressed GeoTIFF shrinks the data from 725 MB to about 6 MB (`server/data/bortle.tif`).
+In October 2026 I came back and rewrote the search so the site could actually be deployed. Now it works in two parts:
 
-**Searching (every request).**
+**Preprocessing:** The old data was preprocessed with a script, [`server/scripts/build_raster.py`](server/scripts/build_raster.py), that turns the raw map into a raster where each pixel already holds its Bortle class, with ocean pixels set to 0. Light pollution comes in big uniform patches, so a tiled, compressed GeoTIFF shrinks the data from 725 MB to about 6 MB (`server/data/bortle.tif`).
+
+When you search for a stargazing site now, each request:
 1. Read a square window of pixels around the location (starting at ~7 km)
 2. Use NumPy to find every dark (Bortle ≤ 4) land pixel in it, then compute real great-circle distances to the closest candidates
 3. The window is square in degrees, not kilometers, so a hit only counts if it's closer than the window's nearest edge. Otherwise, double the window and try again
 
 The server only reads the tiles it needs, so a search takes a few milliseconds and the API runs in under 100 MB of memory.
+
+#### Why is it so much faster?
+
+The old search was a Python loop that went back to the Python interpreter to look up the pixel, check whether it was on land, and classify it, which is _incredibly slow_.
+
+The new search is vectorized with NumPy, so the per-pixel work runs in compiled C instead of the interpreter. Thanks to that, Python only gets involved a handful of times per search. Great!
+
+#### Before and after
+
+| | Before | After |
+|---|---|---|
+| Search time | ~2–3 s | ~1–4 ms (**~700× faster**) |
+| Map data | 725 MB | 6.3 MB (**99% smaller**) |
+| Server memory | 725+ MB (whole map in RAM) | ~76 MB |
+
+The new search also finds *closer* spots, so the old 5º sweep skipped pixels between its steps on big circles, so in Boston it missed a dark site 32 km closer than the one it returned.
 
 To rebuild the data from the original map: put `map.tif` in `server/`, `pip install -r requirements-build.txt`, and run `python scripts/build_raster.py`.

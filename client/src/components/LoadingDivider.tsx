@@ -9,7 +9,7 @@ export default function LoadingDivider() {
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
       transition={{ duration: 0.3 }}
-      className="w-full max-w-3xl mx-auto my-8 flex items-center gap-4 font-mono text-sm text-blue-200"
+      className="w-full max-w-3xl mx-auto my-8 flex items-center gap-4 font-body text-sm text-blue-200"
     >
       <motion.span
         aria-hidden

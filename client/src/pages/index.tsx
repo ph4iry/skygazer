@@ -16,7 +16,7 @@ const ResultMap = dynamic(() => import('@/components/ResultMap'), { ssr: false }
 const API_URL = process.env.NEXT_PUBLIC_API_URL;
 const DEFAULT_MAX_KM = 250;
 // frosted-glass pill used for the links under the tagline
-const GLASS_PILL = "inline-flex items-center gap-1.5 rounded-full border border-white/20 bg-white/10 px-3.5 py-1.5 font-mono text-sm text-indigo-100 shadow-md shadow-black/20 backdrop-blur-md transition-colors hover:bg-white/20 hover:border-white/30 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500";
+const GLASS_PILL = "inline-flex items-center gap-1.5 rounded-full border border-white/20 bg-white/10 px-3.5 py-1.5 font-body text-sm text-indigo-100 shadow-md shadow-black/20 backdrop-blur-md transition-colors hover:bg-white/20 hover:border-white/30 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500";
 
 export default function Home() {
   const [selectedPlace, setSelectedPlace] = useState<Suggestion | null>(null);
@@ -128,8 +128,8 @@ export default function Home() {
       <div className="lg:w-2/3 py-8 px-4">
         <main className="flex flex-col justify-center text-center">
           <div className="mb-6 transition-all duration-300">
-            <h1 className="text-6xl font-serif text-white tracking-tight">skygazer</h1>
-            <p className="text-blue-200 text-base mt-3 font-mono">Find your perfect stargazing spot</p>
+            <h1 className="text-6xl font-display text-white tracking-tight">skygazer</h1>
+            <p className="text-blue-200 text-base mt-3 font-body">Find your perfect stargazing spot</p>
             <div className="mt-4 flex flex-wrap items-center justify-center gap-2">
               <button
                 type="button"
@@ -156,7 +156,7 @@ export default function Home() {
           </div>
 
           <AnimatePresence>
-            {!showMap && <motion.section initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="text-gray-300 font-mono text-sm mb-6">
+            {!showMap && <motion.section initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="text-gray-300 font-body text-sm mb-6">
               <p>Enter your address to find nearby spots with clear views and minimal light pollution.</p>
               <p>Built using the Bortle Scale, the World Atlas of Artificial Night Sky Brightness, and OpenStreetMap</p>
             </motion.section>}

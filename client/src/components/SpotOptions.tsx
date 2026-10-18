@@ -43,10 +43,10 @@ export default function SpotOptions({ options, missing, maxKm, selectedIndex, lo
       initial={{ opacity: 0, height: 0 }}
       animate={{ opacity: 1, height: 'auto' }}
       exit={{ opacity: 0, height: 0 }}
-      className={`w-full max-w-3xl mx-auto mt-4 text-left font-mono text-sm text-white overflow-hidden transition-opacity ${loading ? 'opacity-60' : ''}`}
+      className={`w-full max-w-3xl mx-auto mt-4 text-left font-body text-sm text-white overflow-hidden transition-opacity ${loading ? 'opacity-60' : ''}`}
     >
       <div className="flex items-center justify-between gap-2 mb-2">
-        <h2 className="font-serif text-lg lg:text-xl">choose your sky</h2>
+        <h2 className="font-display text-lg lg:text-xl">choose your sky</h2>
         <div role="group" aria-label="Maximum distance" className="flex gap-1">
           {RANGE_CHOICES.map((km) => (
             <button

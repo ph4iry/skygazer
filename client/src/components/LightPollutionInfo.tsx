@@ -33,14 +33,14 @@ export default function LightPollutionInfo({ data, spot }: LightPollutionInfoPro
     visible: { opacity: 1, y: 10 },
   }
   return (
-    <motion.div variants={informationVariants} initial="hidden" animate="visible" exit="hidden" className="p-6 py-8 px-4 text-white font-mono overflow-hidden text-sm lg:text-base">
-      <motion.h1 variants={infoItemVariants} className="text-xl lg:text-2xl font-serif mb-2 lg:mb-4">light pollution information</motion.h1>
+    <motion.div variants={informationVariants} initial="hidden" animate="visible" exit="hidden" className="p-6 py-8 px-4 text-white font-body overflow-hidden text-sm lg:text-base">
+      <motion.h1 variants={infoItemVariants} className="text-xl lg:text-2xl font-display mb-2 lg:mb-4">light pollution information</motion.h1>
 
       <motion.div variants={innerInformationVariants} initial="hidden" animate="visible" exit="hidden">
         <motion.p variants={infoItemVariants}>
           The light pollution at your location is rated as{" "}
         </motion.p>
-        <motion.div variants={infoItemVariants} className={`text-base lg:text-xl font-serif italic lowercase ${bortleToColor(data.input.bortle)}`}>{data.input.bortle}: {inputBortleDescription}</motion.div>
+        <motion.div variants={infoItemVariants} className={`text-base lg:text-xl font-body italic lowercase ${bortleToColor(data.input.bortle)}`}>{data.input.bortle}: {inputBortleDescription}</motion.div>
         <motion.p variants={infoItemVariants}>on the Bortle scale.</motion.p>
       </motion.div>
 
@@ -62,7 +62,7 @@ export default function LightPollutionInfo({ data, spot }: LightPollutionInfoPro
           {spot.place && !spot.place.name && <> {spot.place.label}</>}
           . This location is rated as{" "}
         </motion.p>
-        <motion.div variants={infoItemVariants} className={`text-base lg:text-xl font-serif italic lowercase ${bortleToColor(spot.bortle)}`}>
+        <motion.div variants={infoItemVariants} className={`text-base lg:text-xl font-body italic lowercase ${bortleToColor(spot.bortle)}`}>
           {spot.bortle}: {idealBortleDescription}
         </motion.div>
         <motion.p variants={infoItemVariants}>on the Bortle scale.</motion.p>

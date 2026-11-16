@@ -195,8 +195,10 @@ def test_nearest_returns_options_with_only_the_recommended_one_snapped(client, p
   assert data["missing"] == ["1"]
   assert len(photon["calls"]) == 1
 
-@pytest.mark.parametrize("requested, expected", [(None, 250), (100, 100), (90, 100), (400, 500), (10_000, 500)])
-def test_nearest_max_km_snaps_to_a_supported_choice(client, photon, monkeypatch, requested, expected):
+@pytest.mark.parametrize("requested, expected", [
+  (None, 250), (100, 100), (402.336, 402.336), (804.672, 804.672), (10_000, 805), (1, 25), ("nan", 250),
+])
+def test_nearest_max_km_is_clamped_to_a_sane_range(client, photon, monkeypatch, requested, expected):
   seen = []
   real = server.find_dark_spots
   monkeypatch.setattr(server, "find_dark_spots", lambda lat, lon, max_km: seen.append(max_km) or real(lat, lon, max_km))

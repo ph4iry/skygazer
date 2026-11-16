@@ -33,7 +33,9 @@ CANDIDATES = 256    # best pixels (by approximate score) to check exactly
 # darker spot beats a slightly closer brighter one (bortle 1 wins unless a 4 is 30+ km closer)
 KM_PER_BORTLE_CLASS = 10
 # how far the user is willing to go for a darker sky
-MAX_KM_CHOICES = (100, 250, 500)
+# the client sends ranges in km (100/250/500 km or mi); keep them within reason
+MIN_MAX_KM = 25
+MAX_MAX_KM = 805  # 500 mi
 DEFAULT_MAX_KM = 250
 
 def bortle_label(value):
@@ -223,7 +225,9 @@ def nearest():
     return jsonify({"error": "Longitude missing or it is not a number"})
   unit = request.args.get("unit", type=str, default="km")
   requested_km = request.args.get("max_km", type=float, default=DEFAULT_MAX_KM)
-  max_km = min(MAX_KM_CHOICES, key=lambda choice: abs(choice - requested_km))
+  if not np.isfinite(requested_km):
+    requested_km = DEFAULT_MAX_KM
+  max_km = min(max(requested_km, MIN_MAX_KM), MAX_MAX_KM)
   origin = (latitude, longitude)
 
   try:

@@ -1,6 +1,6 @@
 import { LightPollutionData, Spot } from "@/types";
 import { bortleToColor, getBortleClassification } from "@/utils/bortle";
-import { IoLocationSharp } from "react-icons/io5";
+import { FiArrowUpRight } from "react-icons/fi";
 import { motion, Variants } from "motion/react";
 
 interface LightPollutionInfoProps {
@@ -39,34 +39,40 @@ export default function LightPollutionInfo({ data, spot }: LightPollutionInfoPro
 
       <motion.div variants={innerInformationVariants} initial="hidden" animate="visible" exit="hidden">
         <motion.p variants={infoItemVariants}>
-          The light pollution at your location is rated as{" "}
+          The sky brightness at this location is approximately:{" "}
         </motion.p>
-        <motion.div variants={infoItemVariants} className={`text-sm lg:text-base font-display italic lowercase ${bortleToColor(data.input.bortle)}`}>{data.input.bortle}: {inputBortleDescription}</motion.div>
-        <motion.p variants={infoItemVariants}>on the Bortle scale.</motion.p>
+        <motion.div variants={infoItemVariants} className={`text-sm lg:text-base font-bold ${bortleToColor(data.input.bortle)}`}>{inputBortleDescription} (Bortle {data.input.bortle})</motion.div>
       </motion.div>
 
-      <motion.div variants={innerInformationVariantsB} initial="hidden" animate="visible" exit="hidden">
-        <motion.p variants={infoItemVariants} className="mt-4">
+      <motion.div variants={innerInformationVariantsB} initial="hidden" animate="visible" exit="hidden" className="">
+        <motion.p variants={infoItemVariants} className="mt-2 pt-2 overflow-visible border-t border-white/30">
           The ideal location for stargazing near you is
           {spot.place?.name ? (
             <>
-              {" "}<span className="font-bold text-indigo-200">{spot.place.name}</span>
-              {spot.place.label && <> in {spot.place.label}</>}, at
+              {" "}<span className="font-bold underline underline-offset-2">{spot.place.name}</span>
+              {spot.place.label && <> in {spot.place.label}</>}, at coordinates
             </>
-          ) : " at"}
-          <span className="inline-block ml-2">
-            <IoLocationSharp className="inline size-5 text-red-300 mr-1" />
-            <a target="_blank" rel="noreferrer noopener" href={`https://www.google.com/maps/place/${spot.latitude},${spot.longitude}`} className="font-bold underline underline-offset-4 transition hover:text-indigo-300">
+          ) : " at coordinates"}
+          <span className="block text-xl overflow-visible mt-0.5">
+            {/* hovering highlights the coordinates and arrow together: white background, dark indigo text */}
+            <a
+              target="_blank"
+              rel="noreferrer noopener"
+              href={`https://www.google.com/maps/place/${spot.latitude},${spot.longitude}`}
+              className="inline-flex items-center gap-1 underline underline-offset-4 rounded px-1 font-bold transition-colors hover:bg-white hover:text-indigo-950 focus-visible:bg-white focus-visible:text-indigo-950 focus-visible:outline-none"
+            >
               {spot.latitude.toFixed(4)}, {spot.longitude.toFixed(4)}
+              <FiArrowUpRight aria-hidden className="size-[0.9em] shrink-0" />
+              <span className="sr-only">(opens Google Maps in a new tab)</span>
             </a>
           </span>
-          {spot.place && !spot.place.name && <> {spot.place.label}</>}
-          . This location is rated as{" "}
+          <span className="block font-bold">{spot.place && !spot.place.name && <> {spot.place.label}</>}.</span>
+          {/* a block span, not a div: divs aren't allowed inside the <p> */}
+          <span className="block">This site's sky brightness is approximately:{" "}</span>
         </motion.p>
-        <motion.div variants={infoItemVariants} className={`text-sm lg:text-base font-display italic lowercase ${bortleToColor(spot.bortle)}`}>
-          {spot.bortle}: {idealBortleDescription}
+        <motion.div variants={infoItemVariants} className={`text-sm lg:text-base font-bold ${bortleToColor(spot.bortle)}`}>
+          {idealBortleDescription} ({spot.bortle})
         </motion.div>
-        <motion.p variants={infoItemVariants}>on the Bortle scale.</motion.p>
       </motion.div>
     </motion.div>
   )

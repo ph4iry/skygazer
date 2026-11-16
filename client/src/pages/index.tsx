@@ -236,7 +236,7 @@ export default function Home() {
               >
                 <div className="pb-6">
                   <h1 className="text-6xl font-display text-white tracking-tight">skygazer</h1>
-                  <p className="text-blue-200 text-base mt-3 font-body">Find your perfect stargazing spot</p>
+                  <p className="text-base mt-3 font-body">Find your perfect stargazing spot</p>
                   <div className="mt-4 flex flex-wrap items-center justify-center gap-2">
                     <HeaderLinks onAbout={() => setAboutOpen(true)} />
                   </div>
@@ -247,8 +247,8 @@ export default function Home() {
 
           <AnimatePresence>
             {!showMap && <motion.section initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="text-gray-300 font-body text-sm mb-6">
-              <p>Enter your address to find nearby spots with clear views and minimal light pollution.</p>
-              <p>Built using the Bortle Scale, the World Atlas of Artificial Night Sky Brightness, and OpenStreetMap</p>
+              <p>Enter an address to find nearby spots with clear views and minimal light pollution.</p>
+              {/* <p>Built using the Bortle Scale, the World Atlas of Artificial Night Sky Brightness, and OpenStreetMap</p> */}
             </motion.section>}
           </AnimatePresence>
 

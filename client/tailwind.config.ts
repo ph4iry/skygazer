@@ -10,9 +10,9 @@ export default {
     extend: {
       fontFamily: {
         geller: ['Geller Text', 'sans-serif'],
-        // headers: Space Grotesk, body: Fraunces (loaded in src/pages/_app.tsx)
-        display: ['var(--font-display)', 'ui-sans-serif', 'system-ui', 'sans-serif'],
-        body: ['var(--font-body)', 'ui-serif', 'Georgia', 'serif'],
+        // headers: Fraunces, body: Space Grotesk (loaded in src/pages/_app.tsx)
+        display: ['var(--font-display)', 'ui-serif', 'Georgia', 'serif'],
+        body: ['var(--font-body)', 'ui-sans-serif', 'system-ui', 'sans-serif'],
         
       },
       colors: {

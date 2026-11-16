@@ -18,7 +18,7 @@
 body {
   color: var(--foreground);
   background: var(--background);
-  font-family: ui-serif, Georgia, serif;
+  font-family: ui-sans-serif, system-ui, sans-serif;
 }
 
 @layer base {

@@ -4,8 +4,8 @@ import { Fraunces, Space_Grotesk } from "next/font/google";
 import React from 'react';
 
 // self-hosted by next/font at build time, exposed as CSS variables for tailwind's font-display / font-body
-const display = Space_Grotesk({ subsets: ["latin"], variable: "--font-display", display: "swap" });
-const body = Fraunces({ subsets: ["latin"], variable: "--font-body", display: "swap", style: ["normal", "italic"] });
+const display = Fraunces({ subsets: ["latin"], variable: "--font-display", display: "swap", style: ["normal", "italic"] });
+const body = Space_Grotesk({ subsets: ["latin"], variable: "--font-body", display: "swap" });
 
 export default function App({ Component, pageProps }: AppProps) {
   return (

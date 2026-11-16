@@ -1,9 +1,10 @@
 import { MapContainer, Marker, TileLayer, useMap } from 'react-leaflet';
 import { divIcon, DivIcon, latLngBounds, LatLngBounds } from 'leaflet';
 import { renderToStaticMarkup } from 'react-dom/server';
-import { ReactNode, useEffect, useMemo } from 'react';
+import { ReactNode, useEffect, useMemo, useSyncExternalStore } from 'react';
 import { Location, SpotOption } from '../types';
 import { skyAccent } from '@/utils/bortle';
+import { DistanceUnit, formatDistance } from '@/utils/units';
 import { IoTelescope } from 'react-icons/io5';
 import { FaHouse } from "react-icons/fa6";
 import { motion } from 'motion/react';
@@ -14,6 +15,23 @@ interface ResultMapProps {
   options: SpotOption[];
   selectedIndex: number;
   onSelect: (index: number) => void;
+  unit: DistanceUnit;
+  // height of the column beside the map on md+, so the map can grow to match it
+  besideHeight?: number | null;
+}
+
+const MIN_HEIGHT_PX = 400; // 25rem
+// md: the breakpoint where the map and the ranked spots sit side by side
+const WIDE_QUERY = '(min-width: 768px)';
+
+function subscribeToWidth(onChange: () => void) {
+  const media = window.matchMedia(WIDE_QUERY);
+  media.addEventListener('change', onChange);
+  return () => media.removeEventListener('change', onChange);
+}
+
+function useWideLayout() {
+  return useSyncExternalStore(subscribeToWidth, () => window.matchMedia(WIDE_QUERY).matches, () => false);
 }
 
 function markerIcon(icon: ReactNode) {
@@ -77,7 +95,11 @@ function FitBounds({ bounds }: { bounds: LatLngBounds }) {
   return null;
 }
 
-export default function ResultMap({ inputLocation, options, selectedIndex, onSelect }: ResultMapProps) {
+export default function ResultMap({ inputLocation, options, selectedIndex, onSelect, unit, besideHeight }: ResultMapProps) {
+  // side by side, the map stretches to the column next to it so there's no empty space under it;
+  // stacked on phones it keeps a fixed height
+  const wide = useWideLayout();
+  const height = wide && besideHeight ? Math.max(besideHeight, MIN_HEIGHT_PX) : MIN_HEIGHT_PX;
   const selected = options[selectedIndex];
   const idealLocation = { lat: selected.latitude, lng: selected.longitude };
 
@@ -90,7 +112,7 @@ export default function ResultMap({ inputLocation, options, selectedIndex, onSel
   );
 
   return (
-    <motion.div initial={{ minHeight: 0, opacity: 0, height: 0 }} animate={{ minHeight: '10rem', height: '25rem', opacity: 1 }} exit={{ opacity: 0, minHeight: 0, height: 0 }} className="w-full max-w-3xl mx-auto rounded-xl overflow-hidden">
+    <motion.div initial={{ minHeight: 0, opacity: 0, height: 0 }} animate={{ minHeight: '10rem', height, opacity: 1 }} exit={{ opacity: 0, minHeight: 0, height: 0 }} className="w-full max-w-3xl mx-auto rounded-xl overflow-hidden">
       <MapContainer
         bounds={bounds}
         boundsOptions={FIT_OPTIONS}
@@ -107,7 +129,7 @@ export default function ResultMap({ inputLocation, options, selectedIndex, onSel
             key={`${option.bortle}-${i}`}
             position={{ lat: option.latitude, lng: option.longitude }}
             icon={spotIcon(option.bortle, false)}
-            title={`Bortle ${option.bortle}, ${Math.round(option.distance)} km`}
+            title={`Bortle ${option.bortle}, ${formatDistance(option.distance, unit)}`}
             eventHandlers={{ click: () => onSelect(i) }}
           />
         ))}

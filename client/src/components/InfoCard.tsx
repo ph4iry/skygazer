@@ -54,7 +54,7 @@ export default function InfoCard({ open, onClose }: InfoCardProps) {
             exit={{ opacity: 0, scale: 0.98 }}
             transition={{ duration: 0.25, ease: 'easeOut' }}
             onClick={(e) => e.stopPropagation()}
-            className="relative w-full max-w-4xl max-h-[85vh] overflow-y-auto rounded-2xl border border-white/20 bg-white/10 p-7 text-left text-white font-body shadow-2xl shadow-black/40 backdrop-blur-2xl"
+            className="relative w-full max-w-4xl max-h-[85vh] overflow-y-auto rounded-2xl border border-white/20 bg-black/60 p-7 text-left text-white font-body shadow-2xl shadow-black/40 backdrop-blur-2xl"
           >
             <button
               ref={closeRef}
@@ -69,7 +69,7 @@ export default function InfoCard({ open, onClose }: InfoCardProps) {
             <h1 id="about-title" className="font-display text-3xl">About skygazer</h1>
             <h2 className="font-display text-xl text-indigo-200 mt-3">What is the Bortle scale?</h2>
             <p className='font-body text-sm'>The <a href="https://en.wikipedia.org/wiki/Bortle_scale" className="underline">Bortle scale</a> measures the brightness of the night sky at a specific location, ranking it on a scale from 1 (pristine dark skies) to 9 (inner-city light pollution). It helps astronomers and stargazers determine the visibility of celestial objects and the impact of artificial light.</p>
-            <Image className="rounded-lg my-4 mx-auto" src="https://upload.wikimedia.org/wikipedia/commons/thumb/4/4d/How_light_pollution_affects_the_dark_night_skies_%28dark-skies%29_%28flipped_left-right%29.jpg/2880px-How_light_pollution_affects_the_dark_night_skies_%28dark-skies%29_%28flipped_left-right%29.jpg" alt="" width={640} height={360} />
+            <Image className="rounded-lg my-4 mx-auto" src="/bortle.png" alt="" width={640} height={360} />
             <p className="text-center italic text-xs">
               Image Credit: <a href="https://commons.wikimedia.org/wiki/File:How_light_pollution_affects_the_dark_night_skies_(dark-skies)_(flipped_left-right).jpg">ESO/P. Horálek, M. Wallner</a>, <a href="https://creativecommons.org/licenses/by/4.0">CC BY 4.0</a>, via Wikimedia Commons
             </p>

@@ -2,18 +2,25 @@ import { useRef } from 'react';
 import { motion } from 'motion/react';
 import { SpotOption } from '@/types';
 import { getBortleClassification, skyAccent } from '@/utils/bortle';
-
-export const RANGE_CHOICES = [100, 250, 500];
+import { DistanceUnit, formatDistance, fromKm, RANGE_CHOICES } from '@/utils/units';
 
 interface SpotOptionsProps {
   options: SpotOption[];
   missing: string[];
+  // the range the server searched, in km
   maxKm: number;
+  // the selected range pill, in `unit`
+  range: number;
+  unit: DistanceUnit;
   selectedIndex: number;
   loading: boolean;
   onSelect: (index: number) => void;
-  onRangeChange: (km: number) => void;
+  onRangeChange: (range: number) => void;
+  onUnitChange: (unit: DistanceUnit) => void;
 }
+
+const PILL = 'px-3 py-1 rounded-full text-xs transition-colors';
+const pillState = (active: boolean) => (active ? 'bg-blue-600 text-white' : 'bg-white/10 text-gray-300 hover:bg-white/20');
 
 function spotName(option: SpotOption) {
   if (option.place?.name) return option.place.name;
@@ -21,12 +28,13 @@ function spotName(option: SpotOption) {
   return `${option.latitude.toFixed(3)}, ${option.longitude.toFixed(3)}`;
 }
 
-export default function SpotOptions({ options, missing, maxKm, selectedIndex, loading, onSelect, onRangeChange }: SpotOptionsProps) {
+export default function SpotOptions({ options, missing, maxKm, range, unit, selectedIndex, loading, onSelect, onRangeChange, onUnitChange }: SpotOptionsProps) {
   const rowRefs = useRef<(HTMLButtonElement | null)[]>([]);
   const closest = options[0]?.distance ?? 0;
   // the server falls back to the nearest dark spot when nothing is within range
   const outOfRange = options.length > 0 && closest > maxKm;
-  const largerRange = RANGE_CHOICES.find((km) => km > maxKm);
+  const largerRange = RANGE_CHOICES.find((choice) => choice > range);
+  const rangeLabel = `${range} ${unit}`;
 
   const handleKeyDown = (e: React.KeyboardEvent, index: number) => {
     let next = index;
@@ -43,21 +51,36 @@ export default function SpotOptions({ options, missing, maxKm, selectedIndex, lo
       initial={{ opacity: 0, height: 0 }}
       animate={{ opacity: 1, height: 'auto' }}
       exit={{ opacity: 0, height: 0 }}
-      className={`w-full max-w-3xl mx-auto mt-4 text-left font-body text-sm text-white overflow-hidden transition-opacity ${loading ? 'opacity-60' : ''}`}
+      className={`w-full mt-4 md:mt-0 text-left font-body text-sm text-white overflow-hidden transition-opacity ${loading ? 'opacity-60' : ''}`}
     >
-      <div className="flex items-center justify-between gap-2 mb-2">
-        <h2 className="font-display text-lg lg:text-xl">choose your sky</h2>
-        <div role="group" aria-label="Maximum distance" className="flex gap-1">
-          {RANGE_CHOICES.map((km) => (
+      <h2 className="font-display text-lg lg:text-xl mb-2">optimal locations</h2>
+      <div className="flex flex-wrap items-center justify-between gap-x-3 gap-y-2 mb-3">
+        <div role="group" aria-label="Maximum distance" className="flex items-center gap-1">
+          <span className="mr-1 text-xs text-gray-400">range:</span>
+          {RANGE_CHOICES.map((choice) => (
             <button
-              key={km}
+              key={choice}
               type="button"
-              aria-pressed={km === maxKm}
+              aria-pressed={choice === range}
               disabled={loading}
-              onClick={() => onRangeChange(km)}
-              className={`px-3 py-1 rounded-full text-xs transition-colors ${km === maxKm ? 'bg-blue-600 text-white' : 'bg-white/10 text-gray-300 hover:bg-white/20'}`}
+              onClick={() => onRangeChange(choice)}
+              className={`${PILL} ${pillState(choice === range)}`}
             >
-              {km} km
+              {choice} {unit}
+            </button>
+          ))}
+        </div>
+        <div role="group" aria-label="Distance unit" className="flex items-center rounded-full bg-white/10 p-0.5">
+          {(['mi', 'km'] as const).map((u) => (
+            <button
+              key={u}
+              type="button"
+              aria-pressed={u === unit}
+              disabled={loading}
+              onClick={() => onUnitChange(u)}
+              className={`${PILL} ${u === unit ? 'bg-white/20 text-white' : 'text-gray-400 hover:text-gray-200'}`}
+            >
+              {u}
             </button>
           ))}
         </div>
@@ -65,7 +88,7 @@ export default function SpotOptions({ options, missing, maxKm, selectedIndex, lo
 
       {outOfRange && (
         <p className="mb-2 text-gray-400">
-          No dark sky within {maxKm} km. This is the nearest one.
+          No dark sky within {rangeLabel}. This is the nearest one.
         </p>
       )}
 
@@ -101,16 +124,19 @@ export default function SpotOptions({ options, missing, maxKm, selectedIndex, lo
                 B{option.bortle}
               </span>
               <span className="flex-1 min-w-0">
-                <span className="block truncate">
+                {/* names can be long ("Mount Evans Wilderness"), so allow two lines before cutting off */}
+                <span className="block line-clamp-2">
                   {spotName(option)}
                   {option.snapping && <span aria-label="looking for a park nearby" className="ml-2 inline-block size-1.5 rounded-full bg-gray-400 animate-pulse" />}
                 </span>
                 <span className="block text-xs text-gray-400 lowercase">{getBortleClassification(option.bortle)}</span>
+                {/* under the description rather than beside the distance, so names keep their width */}
+                {option.recommended && <span className="block text-xs text-indigo-300">★ recommended</span>}
               </span>
               <span className="shrink-0 text-right">
-                <span className="block">{Math.round(option.distance)} km</span>
+                <span className="block">{formatDistance(option.distance, unit)}</span>
                 <span className="block text-xs text-gray-400">
-                  {option.recommended ? <span className="text-indigo-300">★ recommended</span> : extra >= 1 ? `+${Math.round(extra)} km` : 'closest'}
+                  {Math.round(fromKm(extra, unit)) >= 1 ? `+${formatDistance(extra, unit)}` : 'closest'}
                 </span>
               </span>
             </button>
@@ -126,7 +152,7 @@ export default function SpotOptions({ options, missing, maxKm, selectedIndex, lo
             >
               B{bortle}
             </span>
-            <span className="flex-1">none within {maxKm} km</span>
+            <span className="flex-1">none within {rangeLabel}</span>
             {largerRange && (
               <button
                 type="button"
@@ -134,7 +160,7 @@ export default function SpotOptions({ options, missing, maxKm, selectedIndex, lo
                 onClick={() => onRangeChange(largerRange)}
                 className="shrink-0 text-xs underline underline-offset-4 hover:text-gray-300"
               >
-                try {largerRange} km
+                try {largerRange} {unit}
               </button>
             )}
           </div>
